@@ -21,12 +21,14 @@ ENV GOPATH /go
 ENV PATH /go/bin:$PATH
 WORKDIR /go
 
+RUN mkdir app
+COPY ./app ./app
+# COPY ./script.sh .
 
-COPY ./lets.go .
-COPY ./lets_test.go .
-COPY ./script.sh .
+# RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app .
+# RUN go build -a -o app .
+# RUN go test
+# RUN odbcinst -q -d
 
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app .
-RUN go test
-RUN odbcinst -q -d
-CMD "./script.sh"
+
+CMD "./app/script.sh"
