@@ -31,4 +31,4 @@ COPY ./app ./app
 # RUN odbcinst -q -d
 
 
-CMD "./app/script.sh"
+# CMD "./app/script.sh"
