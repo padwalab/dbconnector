@@ -30,5 +30,5 @@ COPY ./app ./app
 # RUN go test
 # RUN odbcinst -q -d
 
-
-# CMD "./app/script.sh"
+RUN chmod 777 ./app/cTest.sh
+CMD "./app/cTest.sh"

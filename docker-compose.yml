@@ -7,6 +7,6 @@ services:
     # ports:
     #   - "8000:8000"
     volumes:
-      - ./app:/go/app
+      - ./app:/go/app:z
     command: >
       sh -c "./app/build.sh"
