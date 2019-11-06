@@ -9,4 +9,4 @@ services:
     volumes:
       - ./app:/go/app:z
     command: >
-      sh -c "./app/build.sh"
+      sh -c "/go/app/startTest.sh"

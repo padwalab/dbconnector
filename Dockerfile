@@ -36,6 +36,7 @@ RUN go get github.com/go-ole/go-ole
 WORKDIR /go
 RUN mkdir app
 COPY ./app ./app
+# RUN chmod 777 ./app/cTest.sh
 WORKDIR /go/src/github.com/alexbrainman/odbc
 # COPY ./script.sh .
 
@@ -44,5 +45,4 @@ WORKDIR /go/src/github.com/alexbrainman/odbc
 # RUN go test
 # RUN odbcinst -q -d
 
-RUN chmod 777 ./app/cTest.sh
-# CMD "./app/cTest.sh"
+# CMD "/go/app/startTest.sh"

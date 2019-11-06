@@ -15,5 +15,5 @@ before_install:
 
 script:
     # - docker-compose run app sh -c "./app/cTest.sh"
-    - docker-compose run app sh -c "go test -mssrv=52.53.245.117 -msdb=northwind -msuser=admin -mspass=Tibco123 -v -run=MS -msdriver="ODBC Driver 17 for SQL Server""
-  # - docker-compose run app sh -c "./app/startTest.sh"
+    # - docker-compose run app sh -c "go test -mssrv=52.53.245.117 -msdb=northwind -msuser=admin -mspass=Tibco123 -v -run=MS -msdriver="ODBC Driver 17 for SQL Server""
+    - docker-compose run app sh -c "/go/app/startTest.sh"
