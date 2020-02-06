@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<head>
+  <script type="text/javascript" src="codemirror.js"></script>
+  <link rel="stylesheet" href="codemirror.css" />
+  <script type="text/javascript" src="matchbrackets.js"></script>
+  <link rel="stylesheet" href="show-hint.css" />
+  <script type="text/javascript" src="show-hint.js"></script>
+  <script type="text/javascript" src="sql-hint.js"></script>
+  <script type="text/javascript" src="sql.js"></script>
+
+  <style>
+    table {
+      border-collapse: collapse;
+      margin: 10px;
+    }
+
+    td,
+    th {
+      border: 1px solid #dddddd;
+      text-align: left;
+      padding: 3px 8px;
+    }
+    .error {
+      color: red;
+    }
+    .success {
+      color: black;
+    }
+    .hider {
+      display: none;
+    }
+  </style>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <script type="text/javascript">
+    var dsnbased = false;
+    window.onload = function() {
+      $("#goTypeQuery").on("click", function() {
+        $("#goTypeQuery").prop("disabled", true);
+        $.ajax({
+          url: "http://localhost.com:8000/queryBuilder",
+          method: "GET",
+          success: function(data) {
+            var hint = JSON.parse(data);
+            var mime = "text/x-sql";
+            window.editor = CodeMirror.fromTextArea(
+              document.getElementById("sql-grammar"),
+              {
+                mode: mime,
+                indentWithTabs: true,
+                smartIndent: true,
+                lineNumbers: true,
+                matchBrackets: true,
+                autofocus: true,
+                extraKeys: { "Ctrl-Space": "autocomplete" },
+                hintOptions: hint
+              }
+            );
+          }
+        });
+      });
+    };
+
+    $(document).ready(function() {
+      $("#connect").click(function() {
+        $("#connect").prop("disabled", true);
+        $("#connresp").html("Connecting...");
+        var fd = new FormData();
+        if (dsnbased == true) {
+          fd.append("DSN", $("#DSN").val());
+        } else {
+          connectionstring =
+            "Driver=" +
+            $("#Drv").val() +
+            ";server=" +
+            $("#server").val() +
+            ";port=" +
+            $("#port").val() +
+            ";uid=" +
+            $("#uid").val() +
+            ";pwd=" +
+            $("#pwd").val() +
+            ";database=" +
+            $("#database").val() +
+            ";";
+          fd.append("DSN", connectionstring);
+        }
+        $.ajax({
+          url: "http://localhost.com:8000/connection",
+          data: fd,
+          processData: false,
+          contentType: false,
+          type: "POST",
+          success: function(data) {
+            $("#disconnect").prop("disabled", false);
+            $("#goTypeQuery").prop("disabled", false);
+            $("#connresp").html(data);
+          },
+          error: function(e) {
+            $("#connresp").html(e.responseText);
+            $("#connect").prop("disabled", false);
+            console.log("e", e);
+          }
+        });
+      });
+    });
+    $(document).ready(function() {
+      $("#disconnect").click(function() {
+        $("#disconnect").prop("disabled", true);
+        $.ajax({
+          url: "http://localhost.com:8000/disconnect",
+          type: "GET",
+          success: function(data) {
+            window.location.reload();
+            $("#connresp").html(data);
+            $("#connect").prop("disabled", false);
+            $("#goTypeQuery").prop("disabled", true);
+            //$("#queryBuilder").attr("style", "display:none;");
+          },
+          error: function(e) {
+            $("#connresp").html(e.responseText);
+            $("#disconnect").prop("disabled", false);
+            console.log("e", e);
+          }
+        });
+      });
+    });
+    $(document).ready(function() {
+      $("#showResult").click(function() {
+        $("#ResultData").removeClass("hider");
+      });
+    });
+
+    $(document).ready(function() {
+      $("#goExecute").click(function() {
+        var i = 1;
+        var dict = new Object();
+        while (document.getElementById("Param[" + i + "]")) {
+          dict["Param[" + i + "]"] = new Object();
+          //dict["Param[" + i + "]"]["type"] = document
+          //  .getElementById("Param[" + i + "]")
+          //  .getAttribute("type");
+          if (
+            document.getElementById("Param[" + i + "]").getAttribute("type") ==
+            "number"
+          ) {
+            dict["Param[" + i + "]"]["value"] = Number(
+              document.getElementById("Param[" + i + "]").value
+            );
+          } else {
+            dict["Param[" + i + "]"]["value"] = document.getElementById(
+              "Param[" + i + "]"
+            ).value;
+          }
+          //console.log(document.getElementById("Param[" + i + "]").value);
+          i++;
+        }
+        console.log(dict);
+        var execPost = new FormData();
+        execPost.append("execPost", JSON.stringify(dict));
+        $.ajax({
+          url: "http://localhost.com:8000/execute",
+          data: execPost,
+          processData: false,
+          contentType: false,
+          type: "POST",
+          success: function(data) {
+            $("#goExecute").prop("disabled", true);
+            console.log(data);
+            var resultDataHtml;
+            if (data["Cols"]) {
+              resultDataHtml = `
+               <table>
+                 <tr>`;
+              for (var i = 0; i < data["Cols"].length; i++) {
+                resultDataHtml += `
+                     <th>${data["Cols"][i]}</th>
+                     `;
+              }
+              resultDataHtml += `</tr>`;
+              for (var i = 0; i < data["ResultData"].length; i++) {
+                resultDataHtml += `
+                 <tr>`;
+                for (var j = 0; j < data["ResultData"][i].length; j++) {
+                  resultDataHtml += `
+                     <td>${data["ResultData"][i][j]}</td>
+                     `;
+                }
+                resultDataHtml += `
+                 </tr>
+               `;
+              }
+              resultDataHtml += `</table>`;
+              $("#showResult").prop("disabled", false);
+              $("#ResultData")
+                .html(resultDataHtml)
+                .addClass("hider");
+            }
+          }
+        });
+      });
+    });
+
+    //$(document).ready(function() {
+    //  $("#goExecute").click(function() {
+    //    var i = 1;
+    //    var dict = new Object();
+    //    while (document.getElementById("Param[" + i + "]")) {
+    //      dict["Param[" + i + "]"] = new Object();
+    //      dict["Param[" + i + "]"]["type"] = document
+    //        .getElementById("Param[" + i + "]")
+    //        .getAttribute("type");
+    //      if (dict["Param[" + i + "]"]["type"] == "number") {
+    //        dict["Param[" + i + "]"]["value"] = Number(
+    //          document.getElementById("Param[" + i + "]").value
+    //        );
+    //      } else {
+    //        dict["Param[" + i + "]"]["value"] = document.getElementById(
+    //          "Param[" + i + "]"
+    //        ).value;
+    //      }
+    //      //console.log(document.getElementById("Param[" + i + "]").value);
+    //      i++;
+    //    }
+    //    console.log(dict);
+    //    var execPost = new FormData();
+    //    execPost.append("execPost", JSON.stringify(dict));
+    //    $.ajax({
+    //      url: "http://localhost.com:8000/execute",
+    //      data: execPost,
+    //      processData: false,
+    //      contentType: false,
+    //      type: "POST",
+    //      success: function(data) {
+    //        console.log(data);
+    //      }
+    //    });
+    //  });
+    //});
+
+    $(document).ready(function() {
+      $("#queryBuilder").keyup(function(e) {
+        if (e.key == ";") {
+          $("#ResultSet").html("Loading...");
+          var query = editor.doc.getValue();
+          //console.log(query);
+          var queryPost = new FormData();
+          queryPost.append("queryPost", query);
+          $.ajax({
+            url: "http://localhost.com:8000/prepare",
+            data: queryPost,
+            processData: false,
+            contentType: false,
+            type: "POST",
+            success: function(data) {
+              console.log(data);
+              $("#goExecute").prop("disabled", false);
+              $("#ResultSet").html("");
+              $("#Parameters").html("");
+              $("#ResultData").html("");
+              if (data["resultSet"]) {
+                var resultSetHtml = `
+                <table>
+                  <tr>
+                    <th>ColumnName</th>
+                    <th>ColumnDataType</th>
+                  </tr>`;
+                for (var i = 0; i < data["resultSet"].length; i++) {
+                  resultSetHtml += `
+                  <tr>
+                    <td>${data["resultSet"][i].columnName}</td>
+                    <td>${data["resultSet"][i].columnDataType}</td>
+                  </tr>
+                `;
+                }
+                resultSetHtml += `</table>`;
+                $("#ResultSet")
+                  .html(resultSetHtml)
+                  .removeClass("error")
+                  .addClass("success");
+              }
+              if (data["parameters"]) {
+                var paramSetHtml = `
+                <table>
+                  <tr>
+                    <th>ParamName</th>
+                    <th>ParamDataType</th>
+                    <th>ParamNullable</th>
+                    <th>input</th>
+                  </tr>`;
+                for (var i = 0; i < data["parameters"].length; i++) {
+                  paramSetHtml += `
+                    <tr>
+                      <td>${data["parameters"][i].paramName}</td>
+                      <td>${data["parameters"][i].paramDataType}</td>
+                      <td>${data["parameters"][i].nullable}</td>
+                      <td>
+                        <input type=${data["parameters"][i].paramDataType} id=${data["parameters"][i].paramName} placeholder=${data["parameters"][i].paramName}></input>
+                      </td>
+                    </tr>
+                  `;
+                }
+                paramSetHtml += `</table>`;
+                $("#Parameters").html(paramSetHtml);
+              }
+            },
+            error: function(e) {
+              $("#ResultSet")
+                .html(e.responseText)
+                .removeClass("success")
+                .addClass("error");
+              console.log("e", e);
+            }
+          });
+        }
+      });
+      $("#chkbox").change(function() {
+        $("#ConnectionDetails").toggle();
+        $("#dsnstring").toggle();
+        dsnbased = !dsnbased;
+        console.log(dsnbased);
+      });
+    });
+  </script>
+</head>
+<body>
+  <div>
+    <form>
+      <div id="ConnectionDetails">
+        <select id="Drv">
+          <option name="Driver" value="drivers/psqlodbcw.so">Postgres</option>
+          <option name="Driver" value="drivers/libmyodbc5w.so">MySQL</option>
+        </select>
+        <br />
+        <input
+          type="text"
+          name="server"
+          id="server"
+          placeholder="server address"
+        />
+        <br />
+        <input type="text" name="port" id="port" placeholder="PORT" />
+        <br />
+        <input type="text" name="uid" id="uid" placeholder="username" />
+        <br />
+        <input type="password" name="pwd" id="pwd" placeholder="password" />
+        <br />
+        <input type="text" name="database" id="database" placeholder="dbname" />
+        <br />
+      </div>
+      <input
+        type="checkbox"
+        name="dsnbool"
+        id="chkbox"
+        value="Connect with DSN"
+      />
+      Connect with data source name<br />
+      <div id="dsnstring" style="display: none;">
+        <input type="text" name="DSN" id="DSN" value="DSN=mylocal;" />
+        <br />
+      </div>
+      <input type="button" id="connect" value="Connect" />
+      <input type="button" id="disconnect" value="Disconnect" disabled />
+    </form>
+    <div id="connresp"></div>
+  </div>
+  <div id="response"></div>
+  <input type="button" id="goTypeQuery" value="Type Query" disabled />
+  <div id="QueryMetadata">
+    <div
+      id="ResultSet"
+      style="display: inline-block; vertical-align: top;"
+    ></div>
+    <div
+      id="Parameters"
+      style="display: inline-block; vertical-align: top;"
+    ></div>
+  </div>
+  <div>
+    <input type="button" id="goExecute" value="Execute" disabled />
+    <input type="button" id="showResult" value="Show Result..." disabled />
+  </div>
+  <div id="queryBuilder">
+    <input id="sql-grammar" name="sql-grammar" type="hidden" />
+  </div>
+  <div id="ResultData"></div>
+</body>

@@ -1,0 +1,1 @@
+DRIVER=drivers/libmyodbc8w.so;SERVER=127.0.0.1;DATABASE=classicmodels;USER=apadwal;PASSWORD=trickpassword;OPTION=3;
