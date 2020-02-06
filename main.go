@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/padwalab/gojs/gosrc"
+	"github.com/padwalab/dbconnector/gosrc"
 )
 import "os"
 
