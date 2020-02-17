@@ -200,43 +200,6 @@
       });
     });
 
-    //$(document).ready(function() {
-    //  $("#goExecute").click(function() {
-    //    var i = 1;
-    //    var dict = new Object();
-    //    while (document.getElementById("Param[" + i + "]")) {
-    //      dict["Param[" + i + "]"] = new Object();
-    //      dict["Param[" + i + "]"]["type"] = document
-    //        .getElementById("Param[" + i + "]")
-    //        .getAttribute("type");
-    //      if (dict["Param[" + i + "]"]["type"] == "number") {
-    //        dict["Param[" + i + "]"]["value"] = Number(
-    //          document.getElementById("Param[" + i + "]").value
-    //        );
-    //      } else {
-    //        dict["Param[" + i + "]"]["value"] = document.getElementById(
-    //          "Param[" + i + "]"
-    //        ).value;
-    //      }
-    //      //console.log(document.getElementById("Param[" + i + "]").value);
-    //      i++;
-    //    }
-    //    console.log(dict);
-    //    var execPost = new FormData();
-    //    execPost.append("execPost", JSON.stringify(dict));
-    //    $.ajax({
-    //      url: "http://localhost:8000/execute",
-    //      data: execPost,
-    //      processData: false,
-    //      contentType: false,
-    //      type: "POST",
-    //      success: function(data) {
-    //        console.log(data);
-    //      }
-    //    });
-    //  });
-    //});
-
     $(document).ready(function() {
       $("#queryBuilder").keyup(function(e) {
         if (e.key == ";") {
