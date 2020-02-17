@@ -212,8 +212,9 @@ func (s *ODBCStmt) Exec(args []interface{}) (*MasterResultSet, error) {
 	}
 	// resultSetLen := len(a.Columns())
 	mrs.Cols = a.Columns()
-	rset := make([]interface{}, len(a.Columns()))
+
 	for {
+		rset := make([]interface{}, len(a.Columns()))
 		err := a.Next(rset)
 		// fmt.Println("call to Next")
 		if err == io.EOF {
